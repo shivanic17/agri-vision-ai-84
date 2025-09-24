@@ -5,17 +5,21 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 import { NavLink, Link } from "react-router-dom";
 import { 
   Home, Sprout, Globe, Bug, BarChart3, Settings, Bell, 
-  Droplets, Thermometer, Activity, Leaf, Beaker, Zap, TrendingUp, ArrowUp
+  Droplets, Thermometer, Activity, Leaf, Beaker, Zap, TrendingUp, ArrowUp, MessageCircle
 } from "lucide-react";
 import soilCondition from "@/assets/soil-condition.jpg";
 import SoilChatbot from "@/components/SoilChatbot";
+import { ChatbotProvider, useChatbot } from "@/components/shared/ChatbotProvider";
 
-const Soil = () => {
+const SoilContent = () => {
+  const { toggleChatbot } = useChatbot();
+
   const sidebarItems = [
     { title: "Dashboard", url: "/dashboard", icon: Home },
     { title: "Crop Health", url: "/dashboard/crops", icon: Sprout },
     { title: "Soil Condition", url: "/dashboard/soil", icon: Globe },
     { title: "Pest Risks", url: "/dashboard/pests", icon: Bug },
+    { title: "AI Assistant", url: "#", icon: MessageCircle, action: "chatbot" },
     { title: "Reports", url: "/reports", icon: BarChart3 },
     { title: "Settings", url: "/dashboard/settings", icon: Settings },
   ];
@@ -159,16 +163,26 @@ const Soil = () => {
                   {sidebarItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
-                        <NavLink 
-                          to={item.url} 
-                          end={item.url === "/dashboard"}
-                          className={({ isActive }) => 
-                            isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted/50"
-                          }
-                        >
-                          <item.icon className="mr-2 h-4 w-4" />
-                          <span>{item.title}</span>
-                        </NavLink>
+                        {item.action === 'chatbot' ? (
+                          <button 
+                            onClick={toggleChatbot}
+                            className="w-full flex items-center hover:bg-muted/50 px-2 py-1.5 rounded-md"
+                          >
+                            <item.icon className="mr-2 h-4 w-4" />
+                            <span>{item.title}</span>
+                          </button>
+                        ) : (
+                          <NavLink 
+                            to={item.url} 
+                            end={item.url === "/dashboard"}
+                            className={({ isActive }) => 
+                              isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted/50"
+                            }
+                          >
+                            <item.icon className="mr-2 h-4 w-4" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        )}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
@@ -339,6 +353,14 @@ const Soil = () => {
       {/* AI Soil Chatbot */}
       <SoilChatbot soilData={currentSoilData} />
     </SidebarProvider>
+  );
+};
+
+const Soil = () => {
+  return (
+    <ChatbotProvider>
+      <SoilContent />
+    </ChatbotProvider>
   );
 };
 

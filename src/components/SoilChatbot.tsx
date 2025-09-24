@@ -17,6 +17,7 @@ import {
   Activity,
   Leaf
 } from "lucide-react";
+import { useChatbot } from "@/components/shared/ChatbotProvider";
 
 interface Message {
   id: string;
@@ -39,7 +40,7 @@ interface SoilChatbotProps {
 }
 
 const SoilChatbot = ({ soilData }: SoilChatbotProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen: isChatbotOpen, openChatbot, closeChatbot } = useChatbot();
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -227,10 +228,10 @@ Try asking about specific aspects like "nitrogen levels", "moisture management",
     }
   };
 
-  if (!isOpen) {
+  if (!isChatbotOpen) {
     return (
       <Button
-        onClick={() => setIsOpen(true)}
+        onClick={openChatbot}
         className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg gradient-hero hover:shadow-glow transition-smooth z-50"
         size="icon"
       >
@@ -265,7 +266,7 @@ Try asking about specific aspects like "nitrogen levels", "moisture management",
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsOpen(false)}
+              onClick={closeChatbot}
               className="h-8 w-8 p-0 text-white hover:bg-white/20"
             >
               <X className="h-4 w-4" />
