@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import cropHealth from "@/assets/crop-health.jpg";
 import soilCondition from "@/assets/soil-condition.jpg";
+import SoilChatbot from "@/components/SoilChatbot";
 
 const Dashboard = () => {
   const sidebarItems = [
@@ -83,6 +84,16 @@ const Dashboard = () => {
       case "low": return "border-l-success bg-success/5";
       default: return "border-l-muted";
     }
+  };
+
+  // Soil data for the AI chatbot
+  const currentSoilData = {
+    moisture: 68,
+    temperature: 24,
+    ph: 6.8,
+    nitrogen: 42,
+    phosphorus: 28,
+    potassium: 156
   };
 
   return (
@@ -358,6 +369,9 @@ const Dashboard = () => {
           </div>
         </main>
       </div>
+
+      {/* AI Soil Chatbot */}
+      <SoilChatbot soilData={currentSoilData} />
     </SidebarProvider>
   );
 };
