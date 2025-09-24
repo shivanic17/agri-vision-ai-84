@@ -16,9 +16,16 @@ import {
   Droplets,
   Activity,
   Leaf,
-  Bug
+  Bug,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX
 } from "lucide-react";
 import { useChatbot } from "@/components/shared/ChatbotProvider";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useTTS } from "@/hooks/useTTS";
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 
 interface Message {
   id: string;
@@ -57,12 +64,30 @@ interface AgriChatbotProps {
 
 const SoilChatbot = ({ soilData, cropData, pestData }: AgriChatbotProps) => {
   const { isOpen: isChatbotOpen, openChatbot, closeChatbot } = useChatbot();
+  const { t, language } = useLanguage();
+  const { speak, stop, isSpeaking } = useTTS();
+  const { startListening, stopListening, isListening, transcript, resetTranscript } = useSpeechRecognition();
+  
   const [isMinimized, setIsMinimized] = useState(false);
+  const [inputMessage, setInputMessage] = useState("");
+  const [autoTTS, setAutoTTS] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       type: 'bot',
-      content: `Hi, I'm AgriBot — your AI farming assistant! 🌾
+      content: language === 'te' 
+        ? `నమస్తే! నేను AgriBot — మీ AI వ్యవసాయ సహాయకుడు! 🌾
+
+నేను మీ ప్రస్తుత వ్యవసాయ డేటాను విశ్లేషించాను మరియు మీ కార్యకలాపాలను మెరుగుపరచడంలో సహాయం చేయడానికి ఇక్కడ ఉన్నాను:
+
+🌱 **వ్యవసాయ సమీక్ష:**
+• పంట ఆరోగ్యం: ${cropData?.avgHealthScore || 78}% సగటు
+• మట్టి తేమ: ${soilData.moisture}% (${soilData.moisture > 65 ? 'అనుకూల' : soilData.moisture > 45 ? 'మంచి' : 'తక్కువ'})
+• చురుకైన హెచ్చరికలు: ${pestData?.activeAlerts || 3} కీటక/వ్యాధి హెచ్చరికలు
+• ప్రమాదంలో ఉన్న క్షేత్రాలు: ${cropData?.fieldsAtRisk || 2} దృష్టి అవసరం
+
+ఈ రోజు నేను మీకు ఎలా సహాయం చేయగలను? పంట ఆరోగ్యం, మట్టి పరిస్థితులు, కీటక నిర్వహణ లేదా సాధారణ వ్యవసాయ సిఫారసుల గురించి అడగండి!`
+        : `Hi, I'm AgriBot — your AI farming assistant! 🌾
 
 I've analyzed your current farm data and I'm here to help optimize your operations:
 
@@ -76,7 +101,6 @@ How can I help you today? Ask me about crop health, soil conditions, pest manage
       timestamp: new Date()
     }
   ]);
-  const [inputMessage, setInputMessage] = useState("");
 
   const generateAIResponse = (userMessage: string): string => {
     const message = userMessage.toLowerCase();
@@ -351,6 +375,52 @@ How can I help optimize your farming operations?`;
     };
 
     setMessages(prev => [...prev, userMessage, botResponse]);
+    
+    // Speak bot response if TTS is enabled
+    if (autoTTS) {
+      setTimeout(() => speak(botResponse.content), 500);
+    }
+    
+    setInputMessage("");
+    resetTranscript();
+  };
+
+  const handleVoiceInput = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      resetTranscript();
+      startListening((result) => {
+        setInputMessage(result);
+      });
+    }
+  };
+
+  const handleQuickAction = (message: string) => {
+    setInputMessage(message);
+    const botResponse = generateAIResponse(message);
+    
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: message,
+      timestamp: new Date()
+    };
+
+    const botResponseMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      type: 'bot',
+      content: botResponse,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage, botResponseMessage]);
+    
+    // Speak the response
+    if (autoTTS) {
+      setTimeout(() => speak(botResponse), 500);
+    }
+    
     setInputMessage("");
   };
 
@@ -381,13 +451,22 @@ How can I help optimize your farming operations?`;
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Bot className="h-5 w-5" />
-            <CardTitle className="text-lg">AgriBot Assistant</CardTitle>
+            <CardTitle className="text-lg">{t('chatbot.title')}</CardTitle>
             <Badge className="bg-white/20 text-white border-white/30">
               <Sprout className="w-3 h-3 mr-1" />
-              Active
+              {isSpeaking ? t('chatbot.speaking') : isListening ? t('chatbot.listening') : 'Active'}
             </Badge>
           </div>
           <div className="flex space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setAutoTTS(!autoTTS)}
+              className="h-8 w-8 p-0 text-white hover:bg-white/20"
+              title={`TTS ${autoTTS ? 'On' : 'Off'}`}
+            >
+              {autoTTS ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -449,12 +528,20 @@ How can I help optimize your farming operations?`;
           <div className="p-4 border-t border-border bg-muted/30">
             <div className="flex space-x-2 mb-3">
               <Input
-                placeholder="Ask me about crops, soil, pests, or farming tips..."
-                value={inputMessage}
+                placeholder={t('chatbot.placeholder')}
+                value={inputMessage || transcript}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 className="flex-1 text-sm"
               />
+              <Button 
+                onClick={handleVoiceInput}
+                size="icon" 
+                variant={isListening ? "default" : "outline"}
+                className={`hover-scale ${isListening ? 'gradient-hero text-white' : ''}`}
+              >
+                {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
               <Button onClick={handleSendMessage} size="icon" className="gradient-hero hover-scale">
                 <Send className="h-4 w-4" />
               </Button>
@@ -463,38 +550,46 @@ How can I help optimize your farming operations?`;
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => setInputMessage("Show crop health status")}
+                onClick={() => handleQuickAction(
+                  language === 'te' ? "పంట ఆరోగ్య స్థితిని చూపించు" : "Show crop health status"
+                )}
                 className="text-xs justify-start"
               >
                 <Sprout className="w-3 h-3 mr-1" />
-                Crop Health
+                {t('chatbot.cropHealth')}
               </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => setInputMessage("Check soil conditions")}
+                onClick={() => handleQuickAction(
+                  language === 'te' ? "మట్టి పరిస్థితులను తనిఖీ చేయి" : "Check soil conditions"
+                )}
                 className="text-xs justify-start"
               >
                 <Activity className="w-3 h-3 mr-1" />
-                Soil Stats
+                {t('chatbot.soilStats')}
               </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => setInputMessage("Show pest alerts")}
+                onClick={() => handleQuickAction(
+                  language === 'te' ? "కీటక హెచ్చరికలను చూపించు" : "Show pest alerts"
+                )}
                 className="text-xs justify-start"
               >
                 <Bug className="w-3 h-3 mr-1" />
-                Pest Alerts
+                {t('chatbot.pestAlerts')}
               </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => setInputMessage("Give me farming recommendations")}
+                onClick={() => handleQuickAction(
+                  language === 'te' ? "వ్యవసాయ సిఫారసులు ఇవ్వు" : "Give me farming recommendations"
+                )}
                 className="text-xs justify-start"
               >
                 <Leaf className="w-3 h-3 mr-1" />
-                Recommendations
+                {t('chatbot.recommendations')}
               </Button>
             </div>
           </div>

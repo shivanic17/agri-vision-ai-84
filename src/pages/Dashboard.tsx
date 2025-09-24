@@ -13,18 +13,23 @@ import cropHealth from "@/assets/crop-health.jpg";
 import soilCondition from "@/assets/soil-condition.jpg";
 import SoilChatbot from "@/components/SoilChatbot";
 import { ChatbotProvider, useChatbot } from "@/components/shared/ChatbotProvider";
+import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { useDashboardTTS } from "@/hooks/useDashboardTTS";
 
 const DashboardContent = () => {
   const { toggleChatbot } = useChatbot();
+  const { t } = useLanguage();
+  const { speakText } = useDashboardTTS();
 
   const sidebarItems = [
-    { title: "Dashboard", url: "/dashboard", icon: Home },
-    { title: "Crop Health", url: "/dashboard/crops", icon: Sprout },
-    { title: "Soil Condition", url: "/dashboard/soil", icon: Globe },
-    { title: "Pest Risks", url: "/dashboard/pests", icon: Bug },
-    { title: "AI Assistant", url: "#", icon: MessageCircle, action: "chatbot" },
-    { title: "Reports", url: "/reports", icon: BarChart3 },
-    { title: "Settings", url: "/dashboard/settings", icon: Settings },
+    { title: t('nav.dashboard'), url: "/dashboard", icon: Home },
+    { title: t('nav.cropHealth'), url: "/dashboard/crops", icon: Sprout },
+    { title: t('nav.soilCondition'), url: "/dashboard/soil", icon: Globe },
+    { title: t('nav.pestRisks'), url: "/dashboard/pests", icon: Bug },
+    { title: t('nav.aiAssistant'), url: "#", icon: MessageCircle, action: "chatbot" },
+    { title: t('nav.reports'), url: "/reports", icon: BarChart3 },
+    { title: t('nav.settings'), url: "/dashboard/settings", icon: Settings },
   ];
 
   const cropZones = [
@@ -35,10 +40,10 @@ const DashboardContent = () => {
   ];
 
   const soilMetrics = [
-    { label: "Moisture", value: "68%", status: "optimal", icon: Droplets },
-    { label: "Temperature", value: "24°C", status: "good", icon: Thermometer },
-    { label: "pH Level", value: "6.8", status: "optimal", icon: Activity },
-    { label: "Nitrogen", value: "42ppm", status: "low", icon: Leaf },
+    { label: t('soil.moisture'), value: "68%", status: "optimal", icon: Droplets },
+    { label: t('soil.temperature'), value: "24°C", status: "good", icon: Thermometer },
+    { label: t('soil.phLevel'), value: "6.8", status: "optimal", icon: Activity },
+    { label: t('soil.nitrogen'), value: "42ppm", status: "low", icon: Leaf },
   ];
 
   const pestAlerts = [
@@ -65,9 +70,9 @@ const DashboardContent = () => {
 
   const getHealthBadge = (health: string) => {
     switch (health) {
-      case "healthy": return <Badge className="bg-success/10 text-success border-success/20">Healthy</Badge>;
-      case "warning": return <Badge className="bg-warning/10 text-warning border-warning/20">Warning</Badge>;
-      case "critical": return <Badge className="bg-destructive/10 text-destructive border-destructive/20">Critical</Badge>;
+      case "healthy": return <Badge className="bg-success/10 text-success border-success/20">{t('status.healthy')}</Badge>;
+      case "warning": return <Badge className="bg-warning/10 text-warning border-warning/20">{t('status.warning')}</Badge>;
+      case "critical": return <Badge className="bg-destructive/10 text-destructive border-destructive/20">{t('status.critical')}</Badge>;
       default: return <Badge variant="secondary">Unknown</Badge>;
     }
   };
@@ -157,17 +162,18 @@ const DashboardContent = () => {
               <div className="flex items-center space-x-4">
                 <SidebarTrigger />
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-                  <p className="text-muted-foreground">Monitor your farm's health and performance</p>
+                  <h1 className="text-2xl font-bold text-foreground" data-tts-announce>{t('dashboard.title')}</h1>
+                  <p className="text-muted-foreground" data-tts-announce>{t('dashboard.subtitle')}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
+                <LanguageSelector />
                 <Button variant="outline" size="sm">
                   <Bell className="w-4 h-4 mr-2" />
-                  Alerts
+                  {t('dashboard.alerts')}
                 </Button>
                 <Button asChild>
-                  <Link to="/reports">View Reports</Link>
+                  <Link to="/reports">{t('dashboard.viewReports')}</Link>
                 </Button>
               </div>
             </div>
@@ -178,9 +184,9 @@ const DashboardContent = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card className="shadow-card">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Area</CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-2xl font-bold text-foreground">143</span>
+                  <CardTitle className="text-sm font-medium text-muted-foreground card-title">{t('dashboard.totalArea')}</CardTitle>
+                  <div className="flex items-center space-x-2" data-tts-announce>
+                    <span className="text-2xl font-bold text-foreground metric-value">143</span>
                     <span className="text-sm text-muted-foreground">acres</span>
                   </div>
                 </CardHeader>
@@ -194,9 +200,9 @@ const DashboardContent = () => {
 
               <Card className="shadow-card">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Healthy Crops</CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-2xl font-bold text-foreground">78%</span>
+                  <CardTitle className="text-sm font-medium text-muted-foreground card-title">{t('dashboard.healthyCrops')}</CardTitle>
+                  <div className="flex items-center space-x-2" data-tts-announce>
+                    <span className="text-2xl font-bold text-foreground metric-value">78%</span>
                     <CheckCircle2 className="w-5 h-5 text-success" />
                   </div>
                 </CardHeader>
@@ -210,9 +216,9 @@ const DashboardContent = () => {
 
               <Card className="shadow-card">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Active Alerts</CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-2xl font-bold text-foreground">3</span>
+                  <CardTitle className="text-sm font-medium text-muted-foreground card-title">{t('dashboard.activeAlerts')}</CardTitle>
+                  <div className="flex items-center space-x-2" data-tts-announce>
+                    <span className="text-2xl font-bold text-foreground metric-value">3</span>
                     <AlertTriangle className="w-5 h-5 text-warning" />
                   </div>
                 </CardHeader>
@@ -226,9 +232,9 @@ const DashboardContent = () => {
 
               <Card className="shadow-card">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Avg Yield</CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-2xl font-bold text-foreground">85%</span>
+                  <CardTitle className="text-sm font-medium text-muted-foreground card-title">{t('dashboard.avgYield')}</CardTitle>
+                  <div className="flex items-center space-x-2" data-tts-announce>
+                    <span className="text-2xl font-bold text-foreground metric-value">85%</span>
                     <span className="text-sm text-muted-foreground">capacity</span>
                   </div>
                 </CardHeader>
@@ -396,9 +402,11 @@ const DashboardContent = () => {
 
 const Dashboard = () => {
   return (
-    <ChatbotProvider>
-      <DashboardContent />
-    </ChatbotProvider>
+    <LanguageProvider>
+      <ChatbotProvider>
+        <DashboardContent />
+      </ChatbotProvider>
+    </LanguageProvider>
   );
 };
 
