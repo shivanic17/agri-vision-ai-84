@@ -8,6 +8,7 @@ import {
   Droplets, Thermometer, Activity, Leaf, Beaker, Zap, TrendingUp, ArrowUp
 } from "lucide-react";
 import soilCondition from "@/assets/soil-condition.jpg";
+import SoilChatbot from "@/components/SoilChatbot";
 
 const Soil = () => {
   const sidebarItems = [
@@ -18,6 +19,16 @@ const Soil = () => {
     { title: "Reports", url: "/reports", icon: BarChart3 },
     { title: "Settings", url: "/dashboard/settings", icon: Settings },
   ];
+
+  // Soil data for the AI chatbot
+  const currentSoilData = {
+    moisture: 68,
+    temperature: 24,
+    ph: 6.8,
+    nitrogen: 42,
+    phosphorus: 28,
+    potassium: 156
+  };
 
   const soilMetrics = [
     { 
@@ -324,6 +335,9 @@ const Soil = () => {
           </div>
         </main>
       </div>
+
+      {/* AI Soil Chatbot */}
+      <SoilChatbot soilData={currentSoilData} />
     </SidebarProvider>
   );
 };
