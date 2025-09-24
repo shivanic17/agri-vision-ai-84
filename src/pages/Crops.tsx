@@ -322,7 +322,11 @@ const CropsContent = () => {
       </div>
 
       {/* AI Soil Chatbot */}
-      <SoilChatbot soilData={{ moisture: 68, temperature: 24, ph: 6.8, nitrogen: 42, phosphorus: 28, potassium: 156 }} />
+      <SoilChatbot 
+        soilData={{ moisture: 68, temperature: 24, ph: 6.8, nitrogen: 42, phosphorus: 28, potassium: 156 }} 
+        cropData={{ totalFields: 4, avgHealthScore: 78, ndviAverage: 0.69, fieldsAtRisk: 2 }}
+        pestData={{ activeAlerts: 3, recentPests: ['Aphid', 'Cutworm', 'Spider Mite'], riskLevel: 'medium' }}
+      />
     </SidebarProvider>
   );
 };

@@ -351,7 +351,11 @@ const SoilContent = () => {
       </div>
 
       {/* AI Soil Chatbot */}
-      <SoilChatbot soilData={currentSoilData} />
+      <SoilChatbot 
+        soilData={currentSoilData} 
+        cropData={{ totalFields: 4, avgHealthScore: 78, ndviAverage: 0.69, fieldsAtRisk: 2 }}
+        pestData={{ activeAlerts: 3, recentPests: ['Aphid', 'Cutworm', 'Spider Mite'], riskLevel: 'medium' }}
+      />
     </SidebarProvider>
   );
 };
